@@ -1,11 +1,7 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {useEffect} from 'react';
 import {Freeze} from 'react-freeze';
 import {Button, SafeAreaView, Text, View} from 'react-native';
-import {createStackNavigator} from '@react-navigation/stack';
-import {NavigationContainer} from '@react-navigation/native';
-import SmallStack from './SmallStack';
-
-const Stack = createStackNavigator();
 
 const listeners: Array<() => void> = [];
 
@@ -18,69 +14,115 @@ function addListener(listener: () => void) {
   };
 }
 
-setInterval(() => {
-  listeners.forEach(listener => listener());
-}, 1000);
+function ComponentWithLayout() {
+  const [a, setA] = React.useState(0);
 
-function App() {
+  React.useEffect(() => {
+    console.log('Test Mount');
+
+    return () => {
+      console.log('Test Unmount');
+    };
+  }, []);
+  console.log('Test render');
+
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Root"
-          component={SmallStack}
-          options={{headerShown: false}}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <View
+      style={{width: 100, height: 100, backgroundColor: 'blue'}}
+      onLayout={() => {
+        console.log('Test layout');
+        setA(1);
+      }}>
+      <Text>{a}</Text>
+    </View>
   );
 }
 
-function Square() {
-  const [counter, setCounter] = React.useState(0);
+function DelayedRender(props: {children: React.ReactNode}) {
+  const [visible, setVisible] = React.useState(false);
 
-  useEffect(() => {
-    console.log('Square mounted');
-    const unsubscribe = addListener(() => {
-      setCounter(x => x + 1);
-      console.log('Square event received');
+  React.useEffect(() => {
+    setImmediate(() => {
+      console.log('DelayedRender immediate');
+      setVisible(true);
+
+      listeners.forEach(listener => listener());
     });
-
-    return () => {
-      console.log('Square unmounted');
-      unsubscribe();
-    };
   }, []);
 
-  useEffect(() => {
-    console.log('Counter changed', counter);
-  }, [counter]);
+  if (visible) {
+    console.log('DelayedRender done');
+    return props.children;
+  } else {
+    console.log('DelayedRender waiting');
+    return null;
+  }
+}
 
-  console.log('Square render');
-
+function FreezeComponent({frozen}: {frozen: boolean}) {
   return (
-    <View style={{width: 200, height: 200, backgroundColor: 'red'}}>
-      <Text>{counter}</Text>
+    <View style={{width: 100, height: 100}}>
+      <Freeze freeze={frozen}>
+        <View style={{flex: 1, backgroundColor: 'red'}} />
+      </Freeze>
+    </View>
+  );
+}
+
+function DelayedComponent({visible}: {visible: boolean}) {
+  return (
+    <View style={{width: 100, height: 100}}>
+      {visible && (
+        <DelayedRender>
+          <ComponentWithLayout />
+        </DelayedRender>
+      )}
     </View>
   );
 }
 
 function FreezeTest() {
-  const [visible, setVisible] = React.useState(true);
   const [frozen, setFrozen] = React.useState(false);
+  const [visible, setVisible] = React.useState(false);
+
+  useEffect(() => {
+    const unsubscribe = addListener(() => {
+      setFrozen(!frozen);
+      console.log('freezed:', frozen);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [frozen]);
 
   return (
     <SafeAreaView style={{flex: 1}}>
-      {visible && (
-        <Freeze freeze={frozen}>
-          <Square />
-        </Freeze>
+      <View style={{height: 100, flexDirection: 'row'}}>
+        <FreezeComponent frozen={frozen} />
+        <DelayedComponent visible={visible} />
+      </View>
+
+      {!visible && (
+        <Button
+          title="Break"
+          onPress={() => {
+            setVisible(true);
+          }}
+        />
       )}
 
-      <Button title="Toggle visible" onPress={() => setVisible(!visible)} />
-      <Button title="Toggle freeze" onPress={() => setFrozen(!frozen)} />
+      {visible && (
+        <Button
+          title="Reset"
+          onPress={() => {
+            setVisible(false);
+            setFrozen(false);
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }
 
-export default App;
+export default FreezeTest;
