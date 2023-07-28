@@ -42,12 +42,10 @@ function DelayedRender(props: {children: React.ReactNode}) {
   const [visible, setVisible] = React.useState(false);
 
   React.useEffect(() => {
-    setImmediate(() => {
-      console.log('DelayedRender immediate');
-      setVisible(true);
+    console.log('DelayedRender immediate');
+    setVisible(true);
 
-      listeners.forEach(listener => listener());
-    });
+    listeners.forEach(listener => listener());
   }, []);
 
   if (visible) {
@@ -88,7 +86,7 @@ function FreezeTest() {
   useEffect(() => {
     const unsubscribe = addListener(() => {
       setFrozen(!frozen);
-      console.log('freezed:', frozen);
+      console.log('freezed:', !frozen);
     });
 
     return () => {
