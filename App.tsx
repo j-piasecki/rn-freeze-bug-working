@@ -1,9 +1,8 @@
 import React, {useEffect} from 'react';
 import {Freeze} from 'react-freeze';
-import {Button, Pressable, SafeAreaView, Text, View} from 'react-native';
+import {Button, SafeAreaView, Text, View} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {NavigationContainer} from '@react-navigation/native';
-import FreezeWrapper from './FreezeWrapper';
 import SmallStack from './SmallStack';
 
 const Stack = createStackNavigator();
@@ -23,46 +22,18 @@ setInterval(() => {
   listeners.forEach(listener => listener());
 }, 1000);
 
-// function App() {
-//   return (
-//     <NavigationContainer>
-//       <Stack.Navigator>
-//         <Stack.Screen
-//           name="Root"
-//           component={SmallStack}
-//           options={{headerShown: false}}
-//         />
-//       </Stack.Navigator>
-//     </NavigationContainer>
-//   );
-// }
-
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      freeze: false,
-    };
-  }
-
-  componentDidMount(): void {
-    console.log('App mounted');
-  }
-
-  render(): React.ReactNode {
-    console.log('App render');
-
-    return (
-      <View
-        onLayout={() => {
-          console.log('App layout');
-          this.setState({freeze: true});
-        }}
-        style={{flex: 1, backgroundColor: 'red'}}
-      />
-    );
-  }
+function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Root"
+          component={SmallStack}
+          options={{headerShown: false}}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 }
 
 function Square() {
